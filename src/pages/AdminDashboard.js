@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllEmployees, updateEmployee, deleteEmployee } from '../services/api';
-import './AdminsDashboard.css';
+import './AdminDashboard.css';
 
 function AdminDashboard() {
     const [employees, setEmployees] = useState([]);
