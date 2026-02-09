@@ -47,6 +47,9 @@ function Register() {
                 skillset: formData.skillset,
                 username: formData.username,
                 password: formData.password,
+                // provide defaults to satisfy server-side validation (adjust if backend expects different values)
+                role: 'Employee',
+                status: 'Active',
                 createdBy: 'Self'
             };
 
@@ -54,7 +57,14 @@ function Register() {
             setSuccess('Registration successful! Redirecting to login...');
             setTimeout(() => navigate('/'), 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Registration failed. Username may already exist.');
+            console.error('Registration error:', err);
+            if (err.response) {
+                setError(err.response.data?.message || `Registration failed (status ${err.response.status}).`);
+            } else if (err.request) {
+                setError('Registration failed: no response from server. Is the backend running?');
+            } else {
+                setError(`Registration failed: ${err.message}`);
+            }
         }
     };
 

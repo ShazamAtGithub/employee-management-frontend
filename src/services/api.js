@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:7057/api/Employee'; // Update port if different
+const API_URL = 'http://localhost:5205/api/Employee'; // Update port if different
 
 export const login = async (username, password) => {
     const response = await axios.post(`${API_URL}/login`, { username, password });
@@ -8,6 +8,7 @@ export const login = async (username, password) => {
 };
 
 export const register = async (employeeData) => {
+    // Call the server's register action. Use `/register` if the backend exposes that route.
     const response = await axios.post(`${API_URL}/register`, employeeData);
     return response.data;
 };
