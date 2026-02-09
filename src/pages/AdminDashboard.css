@@ -15,6 +15,40 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-view {
+    padding: 10px 14px;
+    background: #757575;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s;
+}
+
+.btn-view:hover {
+    background: #616161;
+}
+
+.btn-view.active {
+    background: #2196f3;
+}
+
+.btn-view.active:hover {
+    background: #1976d2;
+}
+
 .dashboard-header h1 {
     color: #333;
     margin: 0;
@@ -172,4 +206,95 @@
     padding: 40px;
     color: #999;
     font-size: 16px;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.btn-page {
+    padding: 8px 14px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background 0.3s;
+}
+
+.btn-page:hover {
+    background: #5a67d8;
+}
+
+.btn-page:disabled {
+    background: #ddd;
+    color: #777;
+    cursor: not-allowed;
+}
+
+.page-info {
+    color: #333;
+    font-size: 14px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.employee-card {
+    background: white;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.employee-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.employee-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.employee-username {
+    font-size: 13px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.employee-card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #333;
+    font-size: 14px;
+}
+
+.employee-card-row {
+    line-height: 1.3;
+}
+
+.employee-card-label {
+    font-weight: 600;
+}
+
+.employee-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
 }
