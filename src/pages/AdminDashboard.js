@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllEmployees, updateEmployee, deleteEmployee } from '../services/api';
+import { getAllEmployees, updateEmployee } from '../services/api';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
@@ -112,20 +112,6 @@ function AdminDashboard() {
             setViewMode(returnAfterEdit.viewMode);
             setCurrentPage(returnAfterEdit.page);
             setReturnAfterEdit(null);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (window.confirm('Are you sure you want to delete this employee?')) {
-            try {
-                const user = JSON.parse(localStorage.getItem('user'));
-                await deleteEmployee(id, user.username);
-                setMessage('Employee deleted successfully!');
-                fetchAllEmployees();
-                setTimeout(() => setMessage(''), 3000);
-            } catch (err) {
-                setMessage('Error deleting employee');
-            }
         }
     };
 
@@ -245,7 +231,17 @@ function AdminDashboard() {
                                                     onChange={handleChange}
                                                 />
                                             </td>
-                                            <td>{emp.status}</td>
+                                            <td>
+                                                <select
+                                                    name="status"
+                                                    value={formData.status || 'Active'}
+                                                    onChange={handleChange}
+                                                    className="status-select"
+                                                >
+                                                    <option value="Active">Active</option>
+                                                    <option value="Inactive">Inactive</option>
+                                                </select>
+                                            </td>
                                             <td>
                                                 <button onClick={handleSave} className="btn-save-small">Save</button>
                                                 <button onClick={handleCancel} className="btn-cancel-small">Cancel</button>
@@ -265,10 +261,9 @@ function AdminDashboard() {
                                                     {emp.status}
                                                 </span>
                                             </td>
-                                            <td>
-                                                <button onClick={() => startEditingEmployee(emp)} className="btn-edit-small">Edit</button>
-                                                <button onClick={() => handleDelete(emp.employeeID)} className="btn-delete-small">Delete</button>
-                                            </td>
+                                        <td>
+                                            <button onClick={() => startEditingEmployee(emp)} className="btn-edit-small">Edit</button>
+                                        </td>
                                         </tr>
                                     )
                                 ))}
@@ -304,13 +299,6 @@ function AdminDashboard() {
                                         className="btn-edit-small"
                                     >
                                         Edit
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleDelete(emp.employeeID)}
-                                        className="btn-delete-small"
-                                    >
-                                        Delete
                                     </button>
                                 </div>
                             </div>

@@ -21,3 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Personal learning notes (do not commit)
+REACT_LEARNING_README.md

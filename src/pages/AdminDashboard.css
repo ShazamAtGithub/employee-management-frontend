@@ -298,3 +298,18 @@
     gap: 8px;
     margin-top: 4px;
 }
+
+.status-select {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #667eea;
+}
