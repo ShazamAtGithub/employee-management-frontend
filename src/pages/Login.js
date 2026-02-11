@@ -17,14 +17,9 @@ function Login() {
 
         if (!trimmedUsername) {
             nextErrors.username = 'Username is required.';
-        } else if (trimmedUsername.length < 3 || trimmedUsername.length > 50) {
-            nextErrors.username = 'Username must be 3–50 characters.';
-        }
-
+        } 
         if (!rawPassword) {
             nextErrors.password = 'Password is required.';
-        } else if (rawPassword.length < 8) {
-            nextErrors.password = 'Password must be at least 8 characters.';
         }
 
         setFieldErrors(nextErrors);
@@ -41,7 +36,11 @@ function Login() {
             
             if (response.role === 'Admin') {
                 navigate('/admin-dashboard');
-            } else {
+            } else if (response.status=='Inactive'){
+                setError('Account Inactive Contact Administrator');
+            }
+            else
+            {
                 navigate('/employee-dashboard');
             }
         } catch (err) {
