@@ -61,6 +61,12 @@
     text-align: center;
 }
 
+.field-error {
+    color: #d32f2f;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
 .register-link {
     text-align: center;
     margin-top: 20px;

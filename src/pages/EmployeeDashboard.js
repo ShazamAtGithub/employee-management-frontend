@@ -15,7 +15,7 @@ function EmployeeDashboard() {
         if (!user) {
             navigate('/');
             return;
-        }
+        } // if user not found redirect to login page 
         fetchEmployeeData(user.employeeID);
     }, [navigate]);
 

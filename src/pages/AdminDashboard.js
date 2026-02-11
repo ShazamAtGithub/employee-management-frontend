@@ -1,21 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllEmployees, updateEmployee } from '../services/api';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
     const [employees, setEmployees] = useState([]);
     const [filteredEmployees, setFilteredEmployees] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [editingEmployee, setEditingEmployee] = useState(null);
-    const [formData, setFormData] = useState({});
     const [message, setMessage] = useState('');
-    const [viewMode, setViewMode] = useState('table');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [returnAfterEdit, setReturnAfterEdit] = useState(null);
+
+    
     const navigate = useNavigate();
 
     const PAGE_SIZE = 10;
+
+    const validateEdit = (data) => {
+        const errors = [];
+        const name = (data?.name || '').trim();
+        const status = (data?.status || '').trim();
+
+        if (!name) errors.push('Name is required.');
+        else if (name.length > 100) errors.push('Name must be at most 100 characters.');
+
+        if (data?.designation && data.designation.length > 100) errors.push('Designation must be at most 100 characters.');
+        if (data?.department && data.department.length > 100) errors.push('Department must be at most 100 characters.');
+        if (data?.skillset && data.skillset.length > 200) errors.push('Skillset must be at most 200 characters.');
+
+        if (!status) errors.push('Status is required.');
+        else if (status.length > 50) errors.push('Status must be at most 50 characters.');
+
+        if (data?.joiningDate) {
+            const parsed = Date.parse(data.joiningDate);
+            if (Number.isNaN(parsed)) errors.push('Joining date must be a valid date.');
+        }
+
+        return errors;
+    };
+
+    const validateRowEdit = (rowData) => {
+        const errors = validateEdit(rowData);
+        if (errors.length > 0) {
+            setMessage(errors.join(' '));
+            return false;
+        }
+        setMessage('');
+        return true;
+    };
+
+    const getApiErrorMessage = (err) => {
+        if (err?.response) {
+            const data = err.response.data;
+            if (typeof data === 'string' && data.trim()) return data;
+            
+            if (data?.errors && typeof data.errors === 'object') {
+                const parts = [];
+                for (const [field, messages] of Object.entries(data.errors)) {
+                    if (Array.isArray(messages) && messages.length) {
+                        parts.push(`${field}: ${messages.join(' ')}`);
+                    }
+                }
+                if (parts.length) return parts.join(' | ');
+            }
+            if (data?.message) return data.message;
+            if (data?.title) return data.title;
+            return `Request failed (${err.response.status})`;
+        }
+        return err?.message || 'Request failed';
+    };
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -35,16 +88,7 @@ function AdminDashboard() {
         setFilteredEmployees(filtered);
     }, [searchTerm, employees]);
 
-    useEffect(() => {
-        // Reset pagination when search changes
-        setCurrentPage(1);
-    }, [searchTerm]);
-
-    useEffect(() => {
-        // Clamp page when filtered results change
-        const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / PAGE_SIZE));
-        setCurrentPage((prev) => Math.min(prev, totalPages));
-    }, [filteredEmployees.length]);
+    // pagination handled by DataTable's built-in paginator; no local page state needed
 
     const fetchAllEmployees = async () => {
         try {
@@ -56,102 +100,87 @@ function AdminDashboard() {
         }
     };
 
-    const startEditingEmployee = (employee, { switchToTable } = { switchToTable: false }) => {
-        if (switchToTable) {
-            // Editing UI is implemented in the table layout; when the user starts editing from grid,
-            // temporarily switch to table and then return to the prior view on save/cancel.
-            setReturnAfterEdit({ viewMode, page: currentPage });
-            setViewMode('table');
-            const index = filteredEmployees.findIndex((e) => e.employeeID === employee.employeeID);
-            if (index >= 0) {
-                const page = Math.floor(index / PAGE_SIZE) + 1;
-                setCurrentPage(page);
-            }
-        } else {
-            setReturnAfterEdit(null);
-        }
-        setEditingEmployee(employee.employeeID);
-        setFormData(employee);
-        setMessage('');
-    };
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
-    };
-
-    const handleSave = async () => {
+    const handleRowEditComplete = async (event) => {
         try {
             const user = JSON.parse(localStorage.getItem('user'));
+
+            const { newData } = event;
+            const errors = validateEdit(newData);
+            if (errors.length > 0) {
+                setMessage(errors.join(' '));
+                return;
+            }
+            
             const updateData = {
-                ...formData,
+                name: newData.name,
+                designation: newData.designation,
+                address: newData.address,
+                department: newData.department,
+                joiningDate: newData.joiningDate,
+                skillset: newData.skillset,
+                username: newData.username,
+                password: newData.password,
+                status: newData.status,
+                role: newData.role,
                 modifiedBy: user.username
             };
-            await updateEmployee(editingEmployee, updateData);
+
+            await updateEmployee(newData.employeeID, updateData);
             setMessage('Employee updated successfully!');
-            setEditingEmployee(null);
-            if (returnAfterEdit) {
-                setViewMode(returnAfterEdit.viewMode);
-                setCurrentPage(returnAfterEdit.page);
-                setReturnAfterEdit(null);
-            }
             fetchAllEmployees();
             setTimeout(() => setMessage(''), 3000);
         } catch (err) {
-            setMessage('Error updating employee');
+            console.error('Error updating employee:', err);
+            setMessage(`Error updating employee: ${getApiErrorMessage(err)}`);
         }
     };
 
-    const handleCancel = () => {
-        setEditingEmployee(null);
-        setFormData({});
-        setMessage('');
-        if (returnAfterEdit) {
-            setViewMode(returnAfterEdit.viewMode);
-            setCurrentPage(returnAfterEdit.page);
-            setReturnAfterEdit(null);
-        }
+    const textEditor = (options) => (
+        <input
+            type="text"
+            value={options.value || ''}
+            onChange={(e) => options.editorCallback(e.target.value)}
+            className="p-inputtext p-component"
+        />
+    );
+
+    const dateEditor = (options) => {
+        const value = options.value ? String(options.value).split('T')[0] : '';
+        return (
+            <input
+                type="date"
+                value={value}
+                onChange={(e) => options.editorCallback(e.target.value)}
+                className="p-inputtext p-component"
+            />
+        );
     };
+
+    const statusEditor = (options) => (
+        <select
+            value={options.value || 'Active'}
+            onChange={(e) => options.editorCallback(e.target.value)}
+            className="p-inputtext p-component"
+        >
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+    );
 
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/');
     };
 
-    const totalPages = Math.max(1, Math.ceil(filteredEmployees.length / PAGE_SIZE));
-    const pagedEmployees = filteredEmployees.slice(
-        (currentPage - 1) * PAGE_SIZE,
-        currentPage * PAGE_SIZE
-    );
-
-    const goPrevPage = () => setCurrentPage((p) => Math.max(1, p - 1));
-    const goNextPage = () => setCurrentPage((p) => Math.min(totalPages, p + 1));
+    // DataTable will handle pagination; use filteredEmployees directly
 
     return (
         <div className="admin-dashboard">
             <div className="dashboard-header">
                 <h1>Admin Dashboard</h1>
-                <div className="header-actions">
-                    <div className="view-toggle">
-                        <button
-                            type="button"
-                            className={`btn-view ${viewMode === 'table' ? 'active' : ''}`}
-                            onClick={() => setViewMode('table')}
-                        >
-                            Table
-                        </button>
-                        <button
-                            type="button"
-                            className={`btn-view ${viewMode === 'grid' ? 'active' : ''}`}
-                            onClick={() => setViewMode('grid')}
-                        >
-                            Grid
-                        </button>
+                    <div className="header-actions">
+                        <button onClick={handleLogout} className="btn-logout">Logout</button>
                     </div>
-                    <button onClick={handleLogout} className="btn-logout">Logout</button>
-                </div>
             </div>
 
             {message && <div className="message">{message}</div>}
@@ -167,166 +196,33 @@ function AdminDashboard() {
             </div>
 
             <div className="table-container">
-                {filteredEmployees.length === 0 ? (
-                    <div className="no-data">No employees found</div>
-                ) : viewMode === 'table' ? (
-                    <>
-                        <table className="employee-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Username</th>
-                                    <th>Designation</th>
-                                    <th>Department</th>
-                                    <th>Joining Date</th>
-                                    <th>Skillset</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {pagedEmployees.map(emp => (
-                                    editingEmployee === emp.employeeID ? (
-                                        <tr key={emp.employeeID} className="editing-row">
-                                            <td>{emp.employeeID}</td>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    name="name"
-                                                    value={formData.name || ''}
-                                                    onChange={handleChange}
-                                                />
-                                            </td>
-                                            <td>{emp.username}</td>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    name="designation"
-                                                    value={formData.designation || ''}
-                                                    onChange={handleChange}
-                                                />
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    name="department"
-                                                    value={formData.department || ''}
-                                                    onChange={handleChange}
-                                                />
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="date"
-                                                    name="joiningDate"
-                                                    value={formData.joiningDate ? formData.joiningDate.split('T')[0] : ''}
-                                                    onChange={handleChange}
-                                                />
-                                            </td>
-                                            <td>
-                                                <input
-                                                    type="text"
-                                                    name="skillset"
-                                                    value={formData.skillset || ''}
-                                                    onChange={handleChange}
-                                                />
-                                            </td>
-                                            <td>
-                                                <select
-                                                    name="status"
-                                                    value={formData.status || 'Active'}
-                                                    onChange={handleChange}
-                                                    className="status-select"
-                                                >
-                                                    <option value="Active">Active</option>
-                                                    <option value="Inactive">Inactive</option>
-                                                </select>
-                                            </td>
-                                            <td>
-                                                <button onClick={handleSave} className="btn-save-small">Save</button>
-                                                <button onClick={handleCancel} className="btn-cancel-small">Cancel</button>
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        <tr key={emp.employeeID}>
-                                            <td>{emp.employeeID}</td>
-                                            <td>{emp.name}</td>
-                                            <td>{emp.username}</td>
-                                            <td>{emp.designation || '-'}</td>
-                                            <td>{emp.department || '-'}</td>
-                                            <td>{emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString() : '-'}</td>
-                                            <td>{emp.skillset || '-'}</td>
-                                            <td>
-                                                <span className={`status-badge ${(emp.status || '').toLowerCase()}`}>
-                                                    {emp.status}
-                                                </span>
-                                            </td>
-                                        <td>
-                                            <button onClick={() => startEditingEmployee(emp)} className="btn-edit-small">Edit</button>
-                                        </td>
-                                        </tr>
-                                    )
-                                ))}
-                            </tbody>
-                        </table>
-                    </>
-                ) : (
-                    <div className="grid-container">
-                        {pagedEmployees.map((emp) => (
-                            <div key={emp.employeeID} className="employee-card">
-                                <div className="employee-card-header">
-                                    <div className="employee-card-title">
-                                        <div className="employee-name">{emp.name}</div>
-                                        <div className="employee-username">{emp.username}</div>
-                                    </div>
-                                    <span className={`status-badge ${(emp.status || '').toLowerCase()}`}>
-                                        {emp.status}
-                                    </span>
-                                </div>
-
-                                <div className="employee-card-body">
-                                    <div className="employee-card-row"><span className="employee-card-label">ID:</span> {emp.employeeID}</div>
-                                    <div className="employee-card-row"><span className="employee-card-label">Designation:</span> {emp.designation || '-'}</div>
-                                    <div className="employee-card-row"><span className="employee-card-label">Department:</span> {emp.department || '-'}</div>
-                                    <div className="employee-card-row"><span className="employee-card-label">Joining Date:</span> {emp.joiningDate ? new Date(emp.joiningDate).toLocaleDateString() : '-'}</div>
-                                    <div className="employee-card-row"><span className="employee-card-label">Skillset:</span> {emp.skillset || '-'}</div>
-                                </div>
-
-                                <div className="employee-card-actions">
-                                    <button
-                                        type="button"
-                                        onClick={() => startEditingEmployee(emp, { switchToTable: true })}
-                                        className="btn-edit-small"
-                                    >
-                                        Edit
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {filteredEmployees.length > 0 && (
-                    <div className="pagination">
-                        <button
-                            type="button"
-                            className="btn-page"
-                            onClick={goPrevPage}
-                            disabled={currentPage === 1}
-                        >
-                            Prev
-                        </button>
-                        <div className="page-info">Page {currentPage} of {totalPages}</div>
-                        <button
-                            type="button"
-                            className="btn-page"
-                            onClick={goNextPage}
-                            disabled={currentPage === totalPages}
-                        >
-                            Next
-                        </button>
-                    </div>
-                )}
+                <DataTable
+                    value={filteredEmployees}
+                    dataKey="employeeID"
+                    editMode="row"
+                    onRowEditComplete={handleRowEditComplete}
+                    rowEditValidator={validateRowEdit}
+                    paginator
+                    rows={PAGE_SIZE}
+                    rowsPerPageOptions={[5,10,25,50]}
+                    stripedRows
+                    emptyMessage="No employees found"
+                    responsiveLayout="scroll"
+                >
+                    <Column field="employeeID" header="ID" sortable />
+                    <Column field="name" header="Name" sortable editor={textEditor} />
+                    <Column field="username" header="Username" sortable />
+                    <Column field="designation" header="Designation" sortable body={(row) => row.designation || '-'} editor={textEditor} />
+                    <Column field="department" header="Department" sortable body={(row) => row.department || '-'} editor={textEditor} />
+                    <Column header="Joining Date" sortable sortField="joiningDate" body={(row) => (row.joiningDate ? new Date(row.joiningDate).toLocaleDateString() : '-')} editor={dateEditor} />
+                    <Column field="skillset" header="Skillset" body={(row) => row.skillset || '-'} editor={textEditor} />
+                    <Column field="status" header="Status" sortable editor={statusEditor} body={(row) => (
+                        <span className={`status-badge ${(row.status || '').toLowerCase()}`}>
+                            {row.status || '-'}
+                        </span>
+                    )} />
+                    <Column rowEditor header="Actions" bodyStyle={{ textAlign: 'center' }} headerStyle={{ width: '10rem' }} />
+                </DataTable>
             </div>
         </div>
     );

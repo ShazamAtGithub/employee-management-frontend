@@ -17,13 +17,51 @@ function Register() {
     });
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
     const navigate = useNavigate();
 
+    const validate = () => {
+        const nextErrors = {};
+        const name = (formData.name || '').trim();
+        const username = (formData.username || '').trim();
+        const password = formData.password || '';
+        const confirmPassword = formData.confirmPassword || '';
+
+        if (!name) nextErrors.name = 'Full name is required.';
+        else if (name.length > 100) nextErrors.name = 'Full name must be at most 100 characters.';
+
+        if (formData.designation && formData.designation.length > 100) nextErrors.designation = 'Designation must be at most 100 characters.';
+        if (formData.address && formData.address.length > 200) nextErrors.address = 'Address must be at most 200 characters.';
+        if (formData.department && formData.department.length > 100) nextErrors.department = 'Department must be at most 100 characters.';
+        if (formData.skillset && formData.skillset.length > 200) nextErrors.skillset = 'Skillset must be at most 200 characters.';
+
+        if (!username) nextErrors.username = 'Username is required.';
+        else if (username.length < 3 || username.length > 50) nextErrors.username = 'Username must be 3–50 characters.';
+
+        if (!password) nextErrors.password = 'Password is required.';
+        else if (password.length < 8) nextErrors.password = 'Password must be at least 8 characters.';
+
+        if (!confirmPassword) nextErrors.confirmPassword = 'Please confirm your password.';
+        else if (password !== confirmPassword) nextErrors.confirmPassword = 'Passwords do not match.';
+
+        if (formData.joiningDate) {
+            const parsed = Date.parse(formData.joiningDate);
+            if (Number.isNaN(parsed)) nextErrors.joiningDate = 'Joining date must be a valid date.';
+        }
+
+        setFieldErrors(nextErrors);
+        return Object.keys(nextErrors).length === 0;
+    };
+
     const handleChange = (e) => {
+        const { name } = e.target;
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
+        if (fieldErrors[name]) {
+            setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -31,21 +69,17 @@ function Register() {
         setError('');
         setSuccess('');
 
-        // Validation
-        if (formData.password !== formData.confirmPassword) {
-            setError('Passwords do not match');
-            return;
-        }
+        if (!validate()) return;
 
         try {
             const employeeData = {
-                name: formData.name,
+                name: formData.name.trim(),
                 designation: formData.designation,
                 address: formData.address,
                 department: formData.department,
                 joiningDate: formData.joiningDate || null,
                 skillset: formData.skillset,
-                username: formData.username,
+                username: formData.username.trim(),
                 password: formData.password,
                 // provide defaults to satisfy server-side validation (adjust if backend expects different values)
                 role: 'Employee',
@@ -83,6 +117,7 @@ function Register() {
                                 onChange={handleChange}
                                 required
                             />
+                            {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
                         </div>
                         <div className="form-group">
                             <label>Designation</label>
@@ -92,6 +127,7 @@ function Register() {
                                 value={formData.designation}
                                 onChange={handleChange}
                             />
+                            {fieldErrors.designation && <div className="field-error">{fieldErrors.designation}</div>}
                         </div>
                     </div>
 
@@ -103,6 +139,7 @@ function Register() {
                             value={formData.address}
                             onChange={handleChange}
                         />
+                        {fieldErrors.address && <div className="field-error">{fieldErrors.address}</div>}
                     </div>
 
                     <div className="form-row">
@@ -114,6 +151,7 @@ function Register() {
                                 value={formData.department}
                                 onChange={handleChange}
                             />
+                            {fieldErrors.department && <div className="field-error">{fieldErrors.department}</div>}
                         </div>
                         <div className="form-group">
                             <label>Joining Date</label>
@@ -123,6 +161,7 @@ function Register() {
                                 value={formData.joiningDate}
                                 onChange={handleChange}
                             />
+                            {fieldErrors.joiningDate && <div className="field-error">{fieldErrors.joiningDate}</div>}
                         </div>
                     </div>
 
@@ -135,6 +174,7 @@ function Register() {
                             onChange={handleChange}
                             placeholder="e.g., C#, React, SQL"
                         />
+                        {fieldErrors.skillset && <div className="field-error">{fieldErrors.skillset}</div>}
                     </div>
 
                     <div className="form-row">
@@ -147,6 +187,7 @@ function Register() {
                                 onChange={handleChange}
                                 required
                             />
+                            {fieldErrors.username && <div className="field-error">{fieldErrors.username}</div>}
                         </div>
                     </div>
 
@@ -160,6 +201,7 @@ function Register() {
                                 onChange={handleChange}
                                 required
                             />
+                            {fieldErrors.password && <div className="field-error">{fieldErrors.password}</div>}
                         </div>
                         <div className="form-group">
                             <label>Confirm Password *</label>
@@ -170,6 +212,7 @@ function Register() {
                                 onChange={handleChange}
                                 required
                             />
+                            {fieldErrors.confirmPassword && <div className="field-error">{fieldErrors.confirmPassword}</div>}
                         </div>
                     </div>
 
