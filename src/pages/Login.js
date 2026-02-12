@@ -26,25 +26,26 @@ function Login() {
         return Object.keys(nextErrors).length === 0;
     };
 
-    const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         if (!validate()) return;
+        
         try {
             const response = await login(username.trim(), password);
             localStorage.setItem('user', JSON.stringify(response));
             
             if (response.role === 'Admin') {
                 navigate('/admin-dashboard');
-            } else if (response.status=='Inactive'){
-                setError('Account Inactive Contact Administrator');
-            }
-            else
-            {
+            } else {
                 navigate('/employee-dashboard');
             }
         } catch (err) {
-            setError('Invalid username or password');
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message);
+            } else {
+                setError('Invalid username or password');
+            }
         }
     };
 
