@@ -84,18 +84,7 @@ function EmployeeDashboard() {
                 {message && <div className="message">{message}</div>}
 
                 <div className="profile-content">
-                    <div className="profile-row">
-                        <div className="profile-field">
-                            <label>Employee ID</label>
-                            <input type="text" value={employee.employeeID} disabled />
-                        </div>
-                        <div className="profile-field">
-                            <label>Username</label>
-                            <input type="text" value={employee.username} disabled />
-                        </div>
-                    </div>
-
-                    <div className="profile-row">
+                    <div>
                         <div className="profile-field">
                             <label>Full Name</label>
                             <input
@@ -105,6 +94,13 @@ function EmployeeDashboard() {
                                 onChange={handleChange}
                                 disabled={!isEditing}
                             />
+                        </div>
+                    </div>
+
+                    <div className="profile-row">
+                        <div className="profile-field">
+                            <label>Username</label>
+                            <input type="text" value={employee.username} disabled />
                         </div>
                         <div className="profile-field">
                             <label>Designation</label>
@@ -162,18 +158,6 @@ function EmployeeDashboard() {
                             disabled={!isEditing}
                         />
                     </div>
-
-                    <div className="profile-row">
-                        <div className="profile-field">
-                            <label>Status</label>
-                            <input type="text" value={employee.status} disabled />
-                        </div>
-                        <div className="profile-field">
-                            <label>Role</label>
-                            <input type="text" value={employee.role} disabled />
-                        </div>
-                    </div>
-
                     <div className="button-group">
                         {!isEditing ? (
                             <button onClick={handleEdit} className="btn-edit">Edit Profile</button>
