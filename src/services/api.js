@@ -29,6 +29,11 @@ export const updateEmployee = async (id, employeeData) => {
     return response.data;
 };
 
+export const adminUpdateEmployee = async (id, employeeData) => {
+    const response = await axios.put(`${ADMIN_URL}/employees/${id}`, employeeData);
+    return response.data;
+};
+
 export const updateEmployeeStatus = async (id, status, modifiedBy) => {
   const response = await axios.put(`${ADMIN_URL}/employees/${id}/status`, { status, modifiedBy });
   return response.data;
