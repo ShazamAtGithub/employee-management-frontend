@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllEmployees, updateEmployee } from '../services/api';
+import { getAllEmployees, updateEmployee, updateEmployeeStatus } from '../services/api';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { InputSwitch } from 'primereact/inputswitch';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
@@ -88,8 +89,6 @@ function AdminDashboard() {
         setFilteredEmployees(filtered);
     }, [searchTerm, employees]);
 
-    // pagination handled by DataTable's built-in paginator; no local page state needed
-
     const fetchAllEmployees = async () => {
         try {
             const data = await getAllEmployees();
@@ -120,7 +119,6 @@ function AdminDashboard() {
                 skillset: newData.skillset,
                 username: newData.username,
                 password: newData.password,
-                status: newData.status,
                 role: newData.role,
                 modifiedBy: user.username
             };
@@ -144,6 +142,35 @@ function AdminDashboard() {
         />
     );
 
+    const actionsBodyTemplate = (row, options) => {
+        const isActive = (row.status || '').trim() === 'Active';
+        const isEditing = !!options?.rowEditor?.editing;
+
+        return (
+            <div className="actions-cell">
+                <InputSwitch
+                    checked={isActive}
+                    disabled={isEditing}
+                    onChange={async (e) => {
+                        try {
+                            const user = JSON.parse(localStorage.getItem('user'));
+                            const nextStatus = e.value ? 'Active' : 'Inactive';
+
+                            await updateEmployeeStatus(row.employeeID, nextStatus, user?.username || 'System');
+                            setMessage('Status updated successfully!');
+                            fetchAllEmployees();
+                            setTimeout(() => setMessage(''), 3000);
+                        } catch (err) {
+                            setMessage(`Error updating status: ${getApiErrorMessage(err)}`);
+                        }
+                    }}
+                />
+
+                {options?.rowEditor?.element}
+            </div>
+        );
+    };
+    
     const dateEditor = (options) => {
         const value = options.value ? String(options.value).split('T')[0] : '';
         return (
@@ -156,23 +183,10 @@ function AdminDashboard() {
         );
     };
 
-    const statusEditor = (options) => (
-        <select
-            value={options.value || 'Active'}
-            onChange={(e) => options.editorCallback(e.target.value)}
-            className="p-inputtext p-component"
-        >
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-        </select>
-    );
-
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/');
     };
-
-    // DataTable will handle pagination; use filteredEmployees directly
 
     return (
         <div className="admin-dashboard">
@@ -216,12 +230,12 @@ function AdminDashboard() {
                     <Column field="department" header="Department" sortable body={(row) => row.department || '-'} editor={textEditor} />
                     <Column header="Joining Date" sortable sortField="joiningDate" body={(row) => (row.joiningDate ? new Date(row.joiningDate).toLocaleDateString() : '-')} editor={dateEditor} />
                     <Column field="skillset" header="Skillset" body={(row) => row.skillset || '-'} editor={textEditor} />
-                    <Column field="status" header="Status" sortable editor={statusEditor} body={(row) => (
+                    <Column field="status" header="Status" sortable body={(row) => (
                         <span className={`status-badge ${(row.status || '').toLowerCase()}`}>
                             {row.status || '-'}
                         </span>
                     )} />
-                    <Column rowEditor header="Actions" bodyStyle={{ textAlign: 'center' }} headerStyle={{ width: '10rem' }} />
+                    <Column rowEditor header="Actions" body={actionsBodyTemplate} bodyStyle={{ overflow: 'visible' }} headerStyle={{ width: '10rem' }} />
                 </DataTable>
             </div>
         </div>
