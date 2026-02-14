@@ -38,3 +38,8 @@ export const updateEmployeeStatus = async (id, status, modifiedBy) => {
   const response = await axios.put(`${ADMIN_URL}/employees/${id}/status`, { status, modifiedBy });
   return response.data;
 };
+
+export const updateProfileImage = async (id, base64Image, modifiedBy) => {
+    const response = await axios.put(`${EMPLOYEE_URL}/${id}/image`, { base64Image, modifiedBy });
+    return response.data;
+};

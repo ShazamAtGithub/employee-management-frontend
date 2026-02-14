@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmployee, updateEmployee } from '../services/api';
+import { getEmployee, updateEmployee, updateProfileImage } from '../services/api';
 import './EmployeeDashboard.css';
 
 function EmployeeDashboard() {
@@ -8,14 +8,29 @@ function EmployeeDashboard() {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
     const [message, setMessage] = useState('');
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [removeImage, setRemoveImage] = useState(false); // Track if user wants to remove image
     const navigate = useNavigate();
+
+    const convertFileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                // .NET expects raw Base64, so strip the "data:image/jpeg;base64," header
+                const base64String = reader.result.toString().replace(/^data:(.*,)?/, '');
+                resolve(base64String);
+            };
+            reader.onerror = error => reject(error);
+        });
+    };
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) {
             navigate('/');
             return;
-        } // if user not found redirect to login page 
+        }
         fetchEmployeeData(user.employeeID);
     }, [navigate]);
 
@@ -44,21 +59,48 @@ function EmployeeDashboard() {
     const handleCancel = () => {
         setIsEditing(false);
         setFormData(employee);
+        setSelectedFile(null);
+        setRemoveImage(false);
         setMessage('');
+    };
+
+    const handleRemoveImage = () => {
+        setRemoveImage(true);
+        setSelectedFile(null); // Clear any selected file
     };
 
     const handleSave = async () => {
         try {
+            setMessage('Saving changes...');
             const user = JSON.parse(localStorage.getItem('user'));
+            
             const updateData = {
                 ...formData,
                 modifiedBy: user.username
             };
+            
+            // Execute Text Update 
             await updateEmployee(employee.employeeID, updateData);
+
+            // Handle image update or removal
+            if (removeImage) {
+                // Send null or empty string to remove the image
+                await updateProfileImage(employee.employeeID, '', user.username);
+            } else if (selectedFile) {
+                // Upload new image
+                const base64Image = await convertFileToBase64(selectedFile);
+                await updateProfileImage(employee.employeeID, base64Image, user.username);
+            }
+
+            // Reset UI and fetch fresh data
             setMessage('Profile updated successfully!');
             setIsEditing(false);
+            setSelectedFile(null);
+            setRemoveImage(false);
             fetchEmployeeData(employee.employeeID);
+            
         } catch (err) {
+            console.error('Save failed:', err);
             setMessage('Error updating profile');
         }
     };
@@ -72,6 +114,20 @@ function EmployeeDashboard() {
         return <div className="loading">Loading...</div>;
     }
 
+    // Determine which image to display
+    const getProfileImageSrc = () => {
+        if (removeImage) {
+            return 'https://img.freepik.com/free-vector/user-circles-set_78370-4704.jpg';
+        }
+        if (selectedFile) {
+            return URL.createObjectURL(selectedFile);
+        }
+        if (employee.profileImage) {
+            return `data:image/jpeg;base64,${employee.profileImage}`;
+        }
+        return 'https://img.freepik.com/free-vector/user-circles-set_78370-4704.jpg';
+    };
+
     return (
         <div className="employee-dashboard">
             <div className="dashboard-header">
@@ -84,6 +140,63 @@ function EmployeeDashboard() {
                 {message && <div className="message">{message}</div>}
 
                 <div className="profile-content">
+                    <div className="profile-picture-container" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                        <img 
+                            src={getProfileImageSrc()} 
+                            alt={`${employee.name}'s Profile`} 
+                            style={{ 
+                                width: '150px', 
+                                height: '150px', 
+                                borderRadius: '50%', 
+                                objectFit: 'cover', 
+                                border: '3px solid #e0e0e0',
+                                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                            }}
+                        />
+                        
+                        {isEditing && (
+                            <div style={{ marginTop: '15px' }}>
+                                <input 
+                                    type="file" 
+                                    accept="image/jpeg, image/png, image/jpg" 
+                                    onChange={(e) => {
+                                        if (e.target.files && e.target.files.length > 0) {
+                                            setSelectedFile(e.target.files[0]);
+                                            setRemoveImage(false); // Clear remove flag when new file selected
+                                        }
+                                    }} 
+                                    className="file-input"
+                                />
+                                {(employee.profileImage || selectedFile) && !removeImage && (
+                                    <button 
+                                        onClick={handleRemoveImage}
+                                        className="btn-remove-image"
+                                        style={{
+                                            marginTop: '10px',
+                                            padding: '4px 6px',
+                                            backgroundColor: '#dc3545',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '14px',
+                                            cursor: 'pointer',
+                                            fontSize: '14px'
+                                        }}
+                                    >
+                                        Remove
+                                    </button>
+                                )}
+                                {removeImage && (
+                                    <p style={{ 
+                                        marginTop: '10px', 
+                                        color: '#dc3545', 
+                                        fontSize: '14px',
+                                        fontStyle: 'italic'
+                                    }}>
+                                    </p>
+                                )}
+                            </div>
+                        )}
+                    </div>
                     <div>
                         <div className="profile-field">
                             <label>Full Name</label>
