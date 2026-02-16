@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getEmployee, updateEmployee, updateProfileImage } from '../services/api';
+import { getEmployee, updateEmployee, updateProfileImage, getCurrentUser, logout } from '../services/api';
 import './EmployeeDashboard.css';
 
 function EmployeeDashboard() {
@@ -26,12 +26,12 @@ function EmployeeDashboard() {
     };
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (!user) {
+        const currentUser = getCurrentUser();
+        if (!currentUser || !currentUser.employeeID) {
             navigate('/');
             return;
         }
-        fetchEmployeeData(user.employeeID);
+        fetchEmployeeData(currentUser.employeeID);
     }, [navigate]);
 
     const fetchEmployeeData = async (id) => {
@@ -72,11 +72,11 @@ function EmployeeDashboard() {
     const handleSave = async () => {
         try {
             setMessage('Saving changes...');
-            const user = JSON.parse(localStorage.getItem('user'));
+            const currentUser = getCurrentUser();
             
             const updateData = {
                 ...formData,
-                modifiedBy: user.username
+                modifiedBy: currentUser.username 
             };
             
             // Execute Text Update 
@@ -85,11 +85,11 @@ function EmployeeDashboard() {
             // Handle image update or removal
             if (removeImage) {
                 // Send null or empty string to remove the image
-                await updateProfileImage(employee.employeeID, '', user.username);
+                await updateProfileImage(employee.employeeID, '', currentUser.username);
             } else if (selectedFile) {
                 // Upload new image
                 const base64Image = await convertFileToBase64(selectedFile);
-                await updateProfileImage(employee.employeeID, base64Image, user.username);
+                await updateProfileImage(employee.employeeID, base64Image, currentUser.username);
             }
 
             // Reset UI and fetch fresh data
@@ -106,7 +106,7 @@ function EmployeeDashboard() {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
+        logout();
         navigate('/');
     };
 

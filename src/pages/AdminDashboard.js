@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllEmployees, adminUpdateEmployee, updateEmployeeStatus } from '../services/api';
+import { getAllEmployees, adminUpdateEmployee, updateEmployeeStatus, getCurrentUser, isAdmin, logout } from '../services/api';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputSwitch } from 'primereact/inputswitch';
@@ -72,12 +72,11 @@ function AdminDashboard() {
     };
 
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (!user || user.role !== 'Admin') {
-            navigate('/');
-            return;
-        }
-        fetchAllEmployees();
+        if (!getCurrentUser().employeeID || !isAdmin()) {
+                navigate('/');
+                return;
+            }
+            fetchAllEmployees();
     }, [navigate]);
 
     useEffect(() => {
@@ -101,7 +100,7 @@ function AdminDashboard() {
 
     const handleRowEditComplete = async (event) => {
         try {
-            const user = JSON.parse(localStorage.getItem('user'));
+            const currentUser = getCurrentUser();
 
             const { newData } = event;
             const errors = validateEdit(newData);
@@ -120,7 +119,7 @@ function AdminDashboard() {
                 username: newData.username,
                 password: newData.password,
                 role: newData.role,
-                modifiedBy: user.username
+                modifiedBy: currentUser.username
             };
 
             await adminUpdateEmployee(newData.employeeID, updateData);
@@ -191,7 +190,7 @@ const actionsBodyTemplate = (row, options) => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('user');
+        logout();
         navigate('/');
     };
 

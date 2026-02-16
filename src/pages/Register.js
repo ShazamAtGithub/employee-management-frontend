@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../services/api';
 import './Register.css';
@@ -15,6 +15,9 @@ function Register() {
         password: '',
         confirmPassword: ''
     });
+    const [profileImageFile, setProfileImageFile] = useState(null);
+    const [profilePreview, setProfilePreview] = useState(null);
+    const fileInputRef = useRef(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
@@ -49,6 +52,13 @@ function Register() {
             if (Number.isNaN(parsed)) nextErrors.joiningDate = 'Joining date must be a valid date.';
         }
 
+        // profile image validation
+        if (profileImageFile) {
+            if (!profileImageFile.type.startsWith('image/')) nextErrors.profileImage = 'Profile image must be an image file.';
+            const maxBytes = 2 * 1024 * 1024; // 2MB
+            if (profileImageFile.size > maxBytes) nextErrors.profileImage = 'Profile image must be 2MB or smaller.';
+        }
+
         setFieldErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     };
@@ -64,6 +74,70 @@ function Register() {
         }
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) {
+            setProfileImageFile(null);
+            if (profilePreview) {
+                URL.revokeObjectURL(profilePreview);
+                setProfilePreview(null);
+            }
+            setFieldErrors((prev) => ({ ...prev, profileImage: undefined }));
+            return;
+        }
+        if (!file.type.startsWith('image/')) {
+            setFieldErrors((prev) => ({ ...prev, profileImage: 'Profile image must be an image file.' }));
+            return;
+        }
+        const maxBytes = 2 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            setFieldErrors((prev) => ({ ...prev, profileImage: 'Profile image must be 2MB or smaller.' }));
+            return;
+        }
+        if (profilePreview) URL.revokeObjectURL(profilePreview);
+        const previewUrl = URL.createObjectURL(file);
+        setProfileImageFile(file);
+        setProfilePreview(previewUrl);
+        setFieldErrors((prev) => ({ ...prev, profileImage: undefined }));
+    };
+
+    const handleRemoveImage = () => {
+        setProfileImageFile(null);
+        if (profilePreview) {
+            URL.revokeObjectURL(profilePreview);
+            setProfilePreview(null);
+        }
+        if (fileInputRef.current) {
+            fileInputRef.current.value = null;
+        }
+        setFieldErrors((prev) => ({ ...prev, profileImage: undefined }));
+    };
+
+    const fileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result;
+                if (typeof result === 'string') {
+                    // result is data:[<mediatype>][;base64],<data>
+                    const idx = result.indexOf(',');
+                    const base64 = idx >= 0 ? result.substring(idx + 1) : result;
+                    resolve(base64);
+                } else {
+                    reject(new Error('Unable to read file as base64'));
+                }
+            };
+            reader.onerror = (err) => reject(err);
+            reader.readAsDataURL(file);
+        });
+    };
+
+    useEffect(() => {
+        return () => {
+            if (profilePreview) URL.revokeObjectURL(profilePreview);
+        };
+    }, [profilePreview]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -72,22 +146,26 @@ function Register() {
         if (!validate()) return;
 
         try {
-            const employeeData = {
-                name: formData.name.trim(),
-                designation: formData.designation,
-                address: formData.address,
-                department: formData.department,
-                joiningDate: formData.joiningDate || null,
-                skillset: formData.skillset,
-                username: formData.username.trim(),
-                password: formData.password,
-                // provide defaults to satisfy server-side validation (adjust if backend expects different values)
-                role: 'Employee',
-                status: 'Active',
-                createdBy: 'Self'
+            // Build JSON payload expected by backend controller which accepts Base64ProfileImage
+            let base64Image = null;
+            if (profileImageFile) {
+                base64Image = await fileToBase64(profileImageFile);
+            }
+
+            const payload = {
+                Name: formData.name.trim(),
+                Designation: formData.designation || null,
+                Address: formData.address || null,
+                Department: formData.department || null,
+                JoiningDate: formData.joiningDate || null,
+                Skillset: formData.skillset || null,
+                Base64ProfileImage: base64Image,
+                Username: formData.username.trim(),
+                Password: formData.password,
+                CreatedBy: 'Self'
             };
 
-            await register(employeeData);
+            await register(payload);
             setSuccess('Registration successful! Redirecting to login...');
             setTimeout(() => navigate('/'), 2000);
         } catch (err) {
@@ -106,7 +184,7 @@ function Register() {
         <div className="register-container">
             <div className="register-box">
                 <h2>Employee Registration</h2>
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} encType="multipart/form-data">
                     <div className="form-row">
                         <div className="form-group">
                             <label>Full Name *</label>
@@ -214,6 +292,18 @@ function Register() {
                             />
                             {fieldErrors.confirmPassword && <div className="field-error">{fieldErrors.confirmPassword}</div>}
                         </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label>Profile Image (optional, max 2MB)</label>
+                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} />
+                        {fieldErrors.profileImage && <div className="field-error">{fieldErrors.profileImage}</div>}
+                        {profilePreview && (
+                            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <img src={profilePreview} alt="Preview" style={{ width: 120, height: 120, objectFit: 'cover', borderRadius: 6 }} />
+                                <button type="button" className="btn-remove" onClick={handleRemoveImage}>Remove</button>
+                            </div>
+                        )}
                     </div>
 
                     {error && <div className="error">{error}</div>}

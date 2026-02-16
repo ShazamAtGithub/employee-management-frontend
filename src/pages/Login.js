@@ -33,7 +33,6 @@ const handleSubmit = async (e) => {
         
         try {
             const response = await login(username.trim(), password);
-            localStorage.setItem('user', JSON.stringify(response));
             
             if (response.role === 'Admin') {
                 navigate('/admin-dashboard');
@@ -41,8 +40,15 @@ const handleSubmit = async (e) => {
                 navigate('/employee-dashboard');
             }
         } catch (err) {
-            if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
+            const serverMessage = err?.response?.data?.message;
+            if (serverMessage && serverMessage.toLowerCase().includes('inactive')) {
+                localStorage.clear();
+                navigate('/disabled-account');
+                return;
+            }
+
+            if (serverMessage) {
+                setError(serverMessage);
             } else {
                 setError('Invalid username or password');
             }

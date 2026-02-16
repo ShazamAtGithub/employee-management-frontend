@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import './App.css';
+import DisabledAccount from './pages/DisabledAccount'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/employee-dashboard" element={<EmployeeDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/disabled-account" element={<DisabledAccount />} />
         </Routes>
       </div>
     </Router>
