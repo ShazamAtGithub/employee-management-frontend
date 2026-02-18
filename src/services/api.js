@@ -35,7 +35,7 @@ api.interceptors.response.use(
 
 // ==================== AUTH ====================
 export const login = async (username, password) => {
-  const response = await axios.post(`${BASE_URL}/Employee/login`, { username, password });
+  const response = await axios.post(`${BASE_URL}/Employee/ef/login`, { username, password });
   
   // Store token and user info in localStorage
   if (response.data.token) {
@@ -52,12 +52,14 @@ export const login = async (username, password) => {
 
 export const register = async (employeeData) => {
   let response;
-  // If a FormData instance is provided, send as multipart/form-data.
   if (employeeData instanceof FormData) {
-    // Let the browser/axios set the Content-Type (includes boundary)
-    response = await api.post(`/Employee/register`, employeeData);
+    response = await api.post(`/Employee/ef/register`, employeeData, {
+      headers: { "Content-Type": "multipart/form-data" } // incase switching to multipart upload
+    });
   } else {
-    response = await api.post(`/Employee/register`, employeeData);
+    response = await api.post(`/Employee/ef/register`, employeeData, {
+      headers: { "Content-Type": "application/json" }
+    });
   }
   return response.data;
 };
@@ -86,22 +88,22 @@ export const getCurrentUser = () => {
 
 // ==================== EMPLOYEE ====================
 export const getEmployee = async (id) => {
-  const response = await api.get(`/Employee/${id}`);
+  const response = await api.get(`/Employee/ef/${id}`);
   return response.data;
 };
 
 export const updateEmployee = async (id, employeeData) => {
-  const response = await api.put(`/Employee/${id}`, employeeData);
+  const response = await api.put(`/Employee/ef/${id}`, employeeData);
   return response.data;
 };
 
 export const updateProfileImage = async (id, base64Image, modifiedBy) => {
-  const response = await api.put(`/Employee/${id}/image`, { base64Image, modifiedBy });
+  const response = await api.put(`/Employee/ef/${id}/image`, { base64Image, modifiedBy });
   return response.data;
 };
 
 export const getProfileImage = async (id) => {
-  const response = await api.get(`/Employee/${id}/image`);
+  const response = await api.get(`/Employee/ef/${id}/image`);
   return response.data;
 };
 
