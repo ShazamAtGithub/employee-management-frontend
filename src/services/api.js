@@ -7,7 +7,7 @@ const api = axios.create({
   baseURL: BASE_URL,
 });
 
-// Request interceptor - Add token to every request
+// Request interceptor 
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -21,12 +21,11 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor - Handle 401 errors
+// Response interceptor 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token expired or invalid - clear storage and redirect to login
       localStorage.clear();
       window.location.href = '/';
     }
@@ -108,16 +107,16 @@ export const getProfileImage = async (id) => {
 
 // ==================== ADMIN ====================
 export const getAllEmployees = async () => {
-  const response = await api.get(`/Admin/employees`);
+  const response = await api.get(`/Admin/ef/employees`);
   return response.data;
 };
 
 export const adminUpdateEmployee = async (id, employeeData) => {
-  const response = await api.put(`/Admin/employees/${id}`, employeeData);
+  const response = await api.put(`/Admin/ef/employees/${id}`, employeeData);
   return response.data;
 };
 
 export const updateEmployeeStatus = async (id, status, modifiedBy) => {
-  const response = await api.put(`/Admin/employees/${id}/status`, { status, modifiedBy });
+  const response = await api.put(`/Admin/ef/employees/${id}/status`, { status, modifiedBy });
   return response.data;
 };
