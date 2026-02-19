@@ -184,7 +184,7 @@ function Register() {
         <div className="register-container">
             <div className="register-box">
                 <h2>Employee Registration</h2>
-                <form onSubmit={handleSubmit} encType="multipart/form-data">
+                <form onSubmit={handleSubmit}>
                     <div className="form-row">
                         <div className="form-group">
                             <label>Full Name *</label>
@@ -295,7 +295,7 @@ function Register() {
                     </div>
 
                     <div className="form-group">
-                        <label>Profile Image (optional, max 2MB)</label>
+                        <label>Profile Image (max 2MB)</label>
                         <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} />
                         {fieldErrors.profileImage && <div className="field-error">{fieldErrors.profileImage}</div>}
                         {profilePreview && (
