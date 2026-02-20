@@ -160,10 +160,10 @@ const actionsBodyTemplate = (row, options) => {
                 disabled={isEditing}
                 onChange={async (e) => {
                     try {
-                        const user = JSON.parse(localStorage.getItem('user'));
+                        const currentUser = getCurrentUser();
                         const nextStatus = e.value ? 'Active' : 'Inactive';
 
-                        await updateEmployeeStatus(row.employeeID, nextStatus, user?.username || 'System');
+                        await updateEmployeeStatus(row.employeeID, nextStatus, currentUser?.username || 'System');
                         setMessage('Status updated successfully!');
                         fetchAllEmployees();
                         setTimeout(() => setMessage(''), 3000);

@@ -1,8 +1,19 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+describe('App routing', () => {
+  beforeEach(() => {
+    window.history.pushState({}, 'Test', '/');
+  });
+
+  test('renders Login on /', () => {
+    render(<App />);
+    expect(screen.getByText('Employee Management System')).toBeInTheDocument();
+  });
+
+  test('renders Register on /register', () => {
+    window.history.pushState({}, 'Test', '/register');
+    render(<App />);
+    expect(screen.getByText('Employee Registration')).toBeInTheDocument();
+  });
 });
