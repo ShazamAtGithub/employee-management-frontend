@@ -187,8 +187,9 @@ function Register() {
                 <form onSubmit={handleSubmit}>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Full Name *</label>
+                            <label htmlFor="reg-name">Full Name *</label>
                             <input
+                                id="reg-name"
                                 type="text"
                                 name="name"
                                 value={formData.name}
@@ -198,8 +199,9 @@ function Register() {
                             {fieldErrors.name && <div className="field-error">{fieldErrors.name}</div>}
                         </div>
                         <div className="form-group">
-                            <label>Designation</label>
+                            <label htmlFor="reg-designation">Designation</label>
                             <input
+                                id="reg-designation"
                                 type="text"
                                 name="designation"
                                 value={formData.designation}
@@ -210,8 +212,9 @@ function Register() {
                     </div>
 
                     <div className="form-group">
-                        <label>Address</label>
+                        <label htmlFor="reg-address">Address</label>
                         <input
+                            id="reg-address"
                             type="text"
                             name="address"
                             value={formData.address}
@@ -222,8 +225,9 @@ function Register() {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Department</label>
+                            <label htmlFor="reg-department">Department</label>
                             <input
+                                id="reg-department"
                                 type="text"
                                 name="department"
                                 value={formData.department}
@@ -232,8 +236,9 @@ function Register() {
                             {fieldErrors.department && <div className="field-error">{fieldErrors.department}</div>}
                         </div>
                         <div className="form-group">
-                            <label>Joining Date</label>
+                            <label htmlFor="reg-joiningDate">Joining Date</label>
                             <input
+                                id="reg-joiningDate"
                                 type="date"
                                 name="joiningDate"
                                 value={formData.joiningDate}
@@ -244,8 +249,9 @@ function Register() {
                     </div>
 
                     <div className="form-group">
-                        <label>Skillset (comma separated)</label>
+                        <label htmlFor="reg-skillset">Skillset (comma separated)</label>
                         <input
+                            id="reg-skillset"
                             type="text"
                             name="skillset"
                             value={formData.skillset}
@@ -257,8 +263,9 @@ function Register() {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Username *</label>
+                            <label htmlFor="reg-username">Username *</label>
                             <input
+                                id="reg-username"
                                 type="text"
                                 name="username"
                                 value={formData.username}
@@ -271,8 +278,9 @@ function Register() {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label>Password *</label>
+                            <label htmlFor="reg-password">Password *</label>
                             <input
+                                id="reg-password"
                                 type="password"
                                 name="password"
                                 value={formData.password}
@@ -282,8 +290,9 @@ function Register() {
                             {fieldErrors.password && <div className="field-error">{fieldErrors.password}</div>}
                         </div>
                         <div className="form-group">
-                            <label>Confirm Password *</label>
+                            <label htmlFor="reg-confirmPassword">Confirm Password *</label>
                             <input
+                                id="reg-confirmPassword"
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
@@ -295,8 +304,8 @@ function Register() {
                     </div>
 
                     <div className="form-group">
-                        <label>Profile Image (max 2MB)</label>
-                        <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} />
+                        <label htmlFor="reg-profileImage">Profile Image (max 2MB)</label>
+                        <input id="reg-profileImage" ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} />
                         {fieldErrors.profileImage && <div className="field-error">{fieldErrors.profileImage}</div>}
                         {profilePreview && (
                             <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: 8 }}>

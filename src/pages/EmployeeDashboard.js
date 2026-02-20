@@ -199,8 +199,9 @@ function EmployeeDashboard() {
                     </div>
                     <div>
                         <div className="profile-field">
-                            <label>Full Name</label>
+                            <label htmlFor="emp-name">Full Name</label>
                             <input
+                                id="emp-name"
                                 type="text"
                                 name="name"
                                 value={formData.name || ''}
@@ -212,12 +213,13 @@ function EmployeeDashboard() {
 
                     <div className="profile-row">
                         <div className="profile-field">
-                            <label>Username</label>
-                            <input type="text" value={employee.username} disabled />
+                            <label htmlFor="emp-username">Username</label>
+                            <input id="emp-username" type="text" value={employee.username} disabled />
                         </div>
                         <div className="profile-field">
-                            <label>Designation</label>
+                            <label htmlFor="emp-designation">Designation</label>
                             <input
+                                id="emp-designation"
                                 type="text"
                                 name="designation"
                                 value={formData.designation || ''}
@@ -228,8 +230,9 @@ function EmployeeDashboard() {
                     </div>
 
                     <div className="profile-field">
-                        <label>Address</label>
+                        <label htmlFor="emp-address">Address</label>
                         <input
+                            id="emp-address"
                             type="text"
                             name="address"
                             value={formData.address || ''}
@@ -240,8 +243,9 @@ function EmployeeDashboard() {
 
                     <div className="profile-row">
                         <div className="profile-field">
-                            <label>Department</label>
+                            <label htmlFor="emp-department">Department</label>
                             <input
+                                id="emp-department"
                                 type="text"
                                 name="department"
                                 value={formData.department || ''}
@@ -250,8 +254,9 @@ function EmployeeDashboard() {
                             />
                         </div>
                         <div className="profile-field">
-                            <label>Joining Date</label>
+                            <label htmlFor="emp-joiningDate">Joining Date</label>
                             <input
+                                id="emp-joiningDate"
                                 type="date"
                                 name="joiningDate"
                                 value={formData.joiningDate ? formData.joiningDate.split('T')[0] : ''}
@@ -262,8 +267,9 @@ function EmployeeDashboard() {
                     </div>
 
                     <div className="profile-field">
-                        <label>Skillset</label>
+                        <label htmlFor="emp-skillset">Skillset</label>
                         <input
+                            id="emp-skillset"
                             type="text"
                             name="skillset"
                             value={formData.skillset || ''}

@@ -61,8 +61,9 @@ const handleSubmit = async (e) => {
                 <h2>Employee Management System</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label>Username</label>
+                        <label htmlFor="login-username">Username</label>
                         <input
+                            id="login-username"
                             type="text"
                             value={username}
                             onChange={(e) => {
@@ -76,8 +77,9 @@ const handleSubmit = async (e) => {
                         {fieldErrors.username && <div className="field-error">{fieldErrors.username}</div>}
                     </div>
                     <div className="form-group">
-                        <label>Password</label>
+                        <label htmlFor="login-password">Password</label>
                         <input
+                            id="login-password"
                             type="password"
                             value={password}
                             onChange={(e) => {
